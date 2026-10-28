@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f5ef">
+  <title>ARINC 429 | Envíos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="ARINC 429, inicio">
+      <span class="brand-mark">429</span>
+      <span class="brand-name">SISTEMA DE PRUEBA</span>
+    </a>
+    <div class="connection"><span class="connection-dot"></span> API local</div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">LABORATORIO / TRANSMISIONES</p>
+        <h1>Envíos de datos</h1>
+        <p class="lede">Seleccioná un instrumento y registrá el valor que querés codificar.</p>
+      </div>
+      <div class="count-block"><span id="shipment-count">0</span><span>envíos registrados</span></div>
+    </section>
+
+    <div class="work-area">
+      <aside class="controls">
+        <section class="control-section">
+          <div class="section-title">
+            <span class="step-number">01</span>
+            <div><h2>Nuevo envío</h2><p>Valor y estado de la palabra</p></div>
+          </div>
+          <form id="shipment-form" class="form-stack">
+            <input id="shipment-id" type="hidden">
+            <label for="instrument-select">Instrumento</label>
+            <select id="instrument-select" required>
+              <option value="">Cargando instrumentos...</option>
+            </select>
+            <div class="field-row">
+              <div class="field-grow">
+                <label for="shipment-value">Valor</label>
+                <input id="shipment-value" type="number" step="any" required placeholder="0.0">
+              </div>
+              <div class="field-grow">
+                <label for="shipment-unit">Unidad</label>
+                <input id="shipment-unit" type="text" readonly placeholder="--">
+              </div>
+            </div>
+            <div class="field-row compact-row">
+              <div>
+                <label for="shipment-sdi">SDI</label>
+                <select id="shipment-sdi"><option>0</option><option>1</option><option>2</option><option>3</option></select>
+              </div>
+              <div>
+                <label for="shipment-ssm">SSM</label>
+                <select id="shipment-ssm"><option>0</option><option>1</option><option>2</option><option>3</option></select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button id="submit-shipment" class="button-primary" type="submit">Crear envío <span aria-hidden="true">↗</span></button>
+              <button id="cancel-edit" class="button-quiet" type="button" hidden>Cancelar</button>
+            </div>
+          </form>
+        </section>
+
+        <details class="instrument-details">
+          <summary><span class="step-number">+</span><span>Agregar instrumento</span></summary>
+          <form id="instrument-form" class="form-stack instrument-form">
+            <label for="instrument-name">Nombre</label>
+            <input id="instrument-name" type="text" maxlength="80" required placeholder="Ej. Altitud">
+            <div class="field-row">
+              <div>
+                <label for="instrument-label">Etiqueta octal</label>
+                <input id="instrument-label" type="text" inputmode="numeric" pattern="[0-7]{1,3}" maxlength="3" required placeholder="203">
+              </div>
+              <div>
+                <label for="instrument-resolution">Resolución</label>
+                <input id="instrument-resolution" type="number" min="0.000001" step="any" required placeholder="0.5">
+              </div>
+            </div>
+            <label for="instrument-unit">Unidad</label>
+            <input id="instrument-unit" type="text" maxlength="24" placeholder="ft, kt, °C...">
+            <button class="button-secondary" type="submit">Guardar instrumento</button>
+          </form>
+        </details>
+        <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
+      </aside>
+
+      <section class="history" aria-labelledby="history-title">
+        <div class="history-heading">
+          <div class="section-title">
+            <span class="step-number">02</span>
+            <div><h2 id="history-title">Historial</h2><p>Palabras ARINC generadas</p></div>
+          </div>
+          <button id="refresh-button" class="button-quiet refresh-button" type="button" title="Actualizar historial">Actualizar <span aria-hidden="true">↻</span></button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Instrumento</th><th>Valor</th><th>Etiqueta</th><th>Palabra / 32 bits</th><th>Fecha</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+            <tbody id="shipment-list"><tr><td class="empty-state" colspan="6">Cargando historial...</td></tr></tbody>
+          </table>
+        </div>
+        <p class="table-footnote">La palabra se calcula con el formato BNR configurado para cada instrumento. La salida física aún no está conectada.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
