@@ -103,6 +103,15 @@ input[readonly] { color: #8b948e; background: #edf0ea; }
 .instrument-details summary::-webkit-details-marker { display: none; }
 .instrument-details[open] summary { margin-bottom: 4px; }
 .instrument-form { margin: 17px 0 0; }
+.instrument-list { margin: 20px 0 0 41px; border-top: 1px solid var(--line); padding-top: 12px; }
+.instrument-list-title { margin: 0 0 7px; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+.instrument-help { margin: 10px 0 0 41px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.instrument-list ul { display: flex; flex-direction: column; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.instrument-list li { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 10px; }
+.instrument-actions { display: flex; flex: 0 0 auto; gap: 2px; }
+.instrument-actions button { border: 0; padding: 4px; background: transparent; color: var(--muted); font-size: 10px; }
+.instrument-actions button:hover { color: var(--green); }
+.instrument-actions button.delete:hover { color: #a3412d; }
 .button-secondary { background: #e2e9e1; color: var(--green-dark); }
 .button-secondary:hover { background: #d5e0d6; }
 .status-message { min-height: 18px; margin: 16px 0 0 41px; color: var(--green); font-size: 11px; }
@@ -133,7 +142,7 @@ td code { font: 10px var(--mono); white-space: nowrap; }
   .topbar { padding: 0 24px; }
   .work-area { grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); gap: 24px; }
   .controls { padding-right: 20px; }
-  .form-stack, .instrument-details, .status-message { margin-left: 0; }
+  .form-stack, .instrument-details, .status-message, .instrument-list, .instrument-help { margin-left: 0; }
   .word-bits { max-width: 130px; }
 }
 @media (max-width: 640px) {

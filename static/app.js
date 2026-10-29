@@ -4,6 +4,8 @@ const shipmentForm = document.querySelector('#shipment-form');
 const shipmentId = document.querySelector('#shipment-id');
 const shipmentList = document.querySelector('#shipment-list');
 const statusMessage = document.querySelector('#status-message');
+const instrumentList = document.querySelector('#instrument-list');
+let instruments = [];
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -30,18 +32,37 @@ function addCell(row, text, className = '') {
 }
 
 async function loadInstruments(selectedId = '') {
-  const instruments = await api('/api/instrumentos');
+  instruments = await api('/api/instrumentos');
   instrumentSelect.replaceChildren();
+  instrumentList.replaceChildren();
   const placeholder = document.createElement('option');
   placeholder.value = '';
   placeholder.textContent = instruments.length ? 'Seleccionar instrumento' : 'Agregá un instrumento primero';
   instrumentSelect.append(placeholder);
+  if (!instruments.length) {
+    const empty = document.createElement('li');
+    empty.className = 'empty-state';
+    empty.textContent = 'Todavía no hay instrumentos.';
+    instrumentList.append(empty);
+  }
   for (const instrument of instruments) {
     const option = document.createElement('option');
     option.value = instrument.id;
     option.textContent = `${instrument.nombre} · ${instrument.etiqueta_octal}`;
     option.dataset.unit = instrument.unidad;
     instrumentSelect.append(option);
+
+    const item = document.createElement('li');
+    const details = document.createElement('span');
+    details.textContent = `${instrument.nombre} · ${instrument.valor_minimo} a ${instrument.valor_maximo} ${instrument.unidad}`;
+    const actions = document.createElement('span');
+    actions.className = 'instrument-actions';
+    actions.append(
+      makeAction('Editar', () => beginInstrumentEdit(instrument)),
+      makeAction('Eliminar', () => deleteInstrument(instrument.id), 'delete'),
+    );
+    item.append(details, actions);
+    instrumentList.append(item);
   }
   instrumentSelect.value = selectedId;
   instrumentUnit.value = instrumentSelect.selectedOptions[0]?.dataset.unit || '';
@@ -83,10 +104,52 @@ async function loadShipments() {
     addCell(row, Number.isNaN(date.valueOf()) ? shipment.creado_en : date.toLocaleString('es-AR'), 'date-cell');
     const actions = addCell(row, '', 'actions');
     actions.append(
+      makeAction('Transmitir', () => transmitShipment(shipment.id)),
       makeAction('Editar', () => beginEdit(shipment)),
       makeAction('Eliminar', () => deleteShipment(shipment.id), 'delete'),
     );
     shipmentList.append(row);
+  }
+}
+
+function beginInstrumentEdit(instrument) {
+  document.querySelector('#instrument-id').value = instrument.id;
+  document.querySelector('#instrument-name').value = instrument.nombre;
+  document.querySelector('#instrument-label').value = instrument.etiqueta_octal;
+  document.querySelector('#instrument-resolution').value = instrument.resolucion;
+  document.querySelector('#instrument-minimum').value = instrument.valor_minimo;
+  document.querySelector('#instrument-maximum').value = instrument.valor_maximo;
+  document.querySelector('#instrument-unit').value = instrument.unidad;
+  document.querySelector('#submit-instrument').textContent = 'Guardar cambios';
+  document.querySelector('#cancel-instrument-edit').hidden = false;
+  document.querySelector('#instrument-name').focus();
+}
+
+function resetInstrumentForm() {
+  document.querySelector('#instrument-form').reset();
+  document.querySelector('#instrument-id').value = '';
+  document.querySelector('#submit-instrument').textContent = 'Guardar instrumento';
+  document.querySelector('#cancel-instrument-edit').hidden = true;
+}
+
+async function deleteInstrument(id) {
+  if (!window.confirm('¿Eliminar este instrumento? No se pueden eliminar instrumentos con envíos registrados.')) return;
+  try {
+    await api(`/api/instrumentos/${id}`, { method: 'DELETE' });
+    if (Number(instrumentSelect.value) === id) instrumentSelect.value = '';
+    await loadInstruments(instrumentSelect.value);
+    showStatus('Instrumento eliminado.');
+  } catch (error) {
+    showStatus(error.message, true);
+  }
+}
+
+async function transmitShipment(id) {
+  try {
+    const result = await api(`/api/envios/${id}/transmitir`, { method: 'POST' });
+    showStatus(`${result.mensaje} ${result.palabra_arinc_hex}`);
+  } catch (error) {
+    showStatus(error.message, true);
   }
 }
 
@@ -159,21 +222,28 @@ document.querySelector('#refresh-button').addEventListener('click', async () => 
 
 document.querySelector('#instrument-form').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const form = event.currentTarget;
+  const id = document.querySelector('#instrument-id').value;
   const payload = {
     nombre: document.querySelector('#instrument-name').value.trim(),
     etiqueta_octal: document.querySelector('#instrument-label').value.trim(),
     resolucion: Number(document.querySelector('#instrument-resolution').value),
+    valor_minimo: Number(document.querySelector('#instrument-minimum').value),
+    valor_maximo: Number(document.querySelector('#instrument-maximum').value),
     unidad: document.querySelector('#instrument-unit').value.trim(),
   };
   try {
-    const created = await api('/api/instrumentos', { method: 'POST', body: JSON.stringify(payload) });
-    form.reset();
-    await loadInstruments(created.id);
-    showStatus('Instrumento agregado.');
+    const saved = await api(id ? `/api/instrumentos/${id}` : '/api/instrumentos', {
+      method: id ? 'PUT' : 'POST',
+      body: JSON.stringify(payload),
+    });
+    resetInstrumentForm();
+    await Promise.all([loadInstruments(saved.id), loadShipments()]);
+    showStatus(id ? 'Instrumento actualizado.' : 'Instrumento agregado.');
   } catch (error) {
     showStatus(error.message, true);
   }
 });
+
+document.querySelector('#cancel-instrument-edit').addEventListener('click', resetInstrumentForm);
 
 Promise.all([loadInstruments(), loadShipments()]).catch((error) => showStatus(error.message, true));

@@ -68,8 +68,9 @@
         </section>
 
         <details class="instrument-details">
-          <summary><span class="step-number">+</span><span>Agregar instrumento</span></summary>
+          <summary><span class="step-number">+</span><span>Administrar instrumentos</span></summary>
           <form id="instrument-form" class="form-stack instrument-form">
+            <input id="instrument-id" type="hidden">
             <label for="instrument-name">Nombre</label>
             <input id="instrument-name" type="text" maxlength="80" required placeholder="Ej. Altitud">
             <div class="field-row">
@@ -82,10 +83,28 @@
                 <input id="instrument-resolution" type="number" min="0.000001" step="any" required placeholder="0.5">
               </div>
             </div>
+            <div class="field-row">
+              <div>
+                <label for="instrument-minimum">Mínimo</label>
+                <input id="instrument-minimum" type="number" step="any" required placeholder="-100">
+              </div>
+              <div>
+                <label for="instrument-maximum">Máximo</label>
+                <input id="instrument-maximum" type="number" step="any" required placeholder="100">
+              </div>
+            </div>
             <label for="instrument-unit">Unidad</label>
             <input id="instrument-unit" type="text" maxlength="24" placeholder="ft, kt, °C...">
-            <button class="button-secondary" type="submit">Guardar instrumento</button>
+            <div class="form-actions">
+              <button id="submit-instrument" class="button-secondary" type="submit">Guardar instrumento</button>
+              <button id="cancel-instrument-edit" class="button-quiet" type="button" hidden>Cancelar</button>
+            </div>
           </form>
+          <div class="instrument-list">
+            <p class="instrument-list-title">Instrumentos registrados</p>
+            <ul id="instrument-list"><li class="empty-state">Cargando instrumentos...</li></ul>
+          </div>
+          <p class="instrument-help">Al cambiar etiqueta o resolución se regeneran las palabras de los envíos existentes.</p>
         </details>
         <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
       </aside>
@@ -104,7 +123,7 @@
             <tbody id="shipment-list"><tr><td class="empty-state" colspan="6">Cargando historial...</td></tr></tbody>
           </table>
         </div>
-        <p class="table-footnote">La palabra se calcula con el formato BNR configurado para cada instrumento. La salida física aún no está conectada.</p>
+        <p class="table-footnote">La palabra BNR de 32 bits se transmite como ocho dígitos hexadecimales y salto de línea cuando se configura el puerto serie.</p>
       </section>
     </div>
   </main>
